@@ -9,3 +9,9 @@ The goal:
 - support Latin first, Cyrillic later
 
 ## Architecture
+font → glyph filtering → M-calibration →
+edge features → raster features → clustering →
+optical engine → kerning cleanup → export to Glyphs
+
+## Status
+Development: Phase 1 (Latin-only engine, calibration layer).
