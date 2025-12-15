@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+# MenuTitle: Run: Optical Kerning Classes
+# Description:
+# Build OptiKern classes (OK_*) from contours + raster sampling and write them to Font Info > Classes.
+# Version: 0.1
+# Author: Denis Serebryakov
+# Requirements: Glyphs 3+
 
 import os
 import sys
