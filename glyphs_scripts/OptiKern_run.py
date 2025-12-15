@@ -6,9 +6,8 @@ from optikern.glyph_filter import get_kernable_glyphs
 from optikern.calibration import calibrate_reference_metrics
 from optikern.edge_features import build_edge_features
 from optikern.raster_features import build_raster_profiles
-from optikern.clustering import build_classes
-from optikern.optical_engine import compute_all_class_pairs
-from optikern.kerning_cleanup import cleanup_pairs
+from optikern.clustering import build_classes, ClassifyConfig
+from optikern.classes_export import write_classes_to_glyphs, ExportConfig
 
 def run():
     font = get_current_font()
@@ -17,15 +16,28 @@ def run():
         return
 
     master = font.selectedFontMaster
+    if not master:
+        print("No master selected.")
+        return
 
     glyphs = get_kernable_glyphs(font)
-    refs = calibrate_reference_metrics(font, master)
-    edge = build_edge_features(font, glyphs, master)
-    raster = build_raster_profiles(font, glyphs, master)
-    L, R = build_classes(edge)
-    raw = compute_all_class_pairs(L, R, config={})
-    cleaned = cleanup_pairs(raw)
+    print(f"[OptiKern] Kernable glyphs: {len(glyphs)}")
 
-    print("OptiKern finished.")
+    # Calibration (M-method baseline)
+    calib = calibrate_reference_metrics(font, master)
+
+    # Feature extraction
+    edge = build_edge_features(font, glyphs, master)
+    raster = build_raster_profiles(font, glyphs, master, columns=32, samples_per_band=12)
+
+    # Build classes
+    cfg = ClassifyConfig(use_raster=True)
+    L, R, glyph_to_L, glyph_to_R = build_classes(edge, raster, cfg=cfg)
+
+    # Export to Glyphs (safe prefix)
+    export_cfg = ExportConfig(prefix="OK_", overwrite=True, clear_missing=False)
+    write_classes_to_glyphs(font, L, R, cfg=export_cfg)
+
+    print("[OptiKern] Done. Check Glyphs > Font Info > Classes for OK_* classes.")
 
 run()
