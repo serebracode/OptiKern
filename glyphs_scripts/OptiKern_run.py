@@ -1,19 +1,17 @@
-# -*- coding: utf-8 -*-
 # MenuTitle: Run: Optical Kerning Classes
-# Description:
-# Build OptiKern classes (OK_*) from contours + raster sampling and write them to Font Info > Classes.
+# Description: Build OK_* kerning classes using optical analysis
 # Version: 0.1
 # Author: Denis Serebryakov
-# Requirements: Glyphs 3+
 
-import os
-import sys
+# -*- coding: utf-8 -*-
 
-# Ensure script directory is on sys.path (Glyphs-safe)
+import os, sys
+import GlyphsApp
+
 SCRIPT_DIR = os.path.dirname(__file__)
-if SCRIPT_DIR not in sys.path:
-    sys.path.insert(0, SCRIPT_DIR)
-
+ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
 from optikern.glyphs_integration import get_current_font
 from optikern.glyph_filter import get_kernable_glyphs
@@ -23,35 +21,30 @@ from optikern.raster_features import build_raster_profiles
 from optikern.clustering import build_classes, ClassifyConfig
 from optikern.classes_export import write_classes_to_glyphs, ExportConfig
 
+
 def run():
     font = get_current_font()
     if not font:
-        print("No font open.")
+        print("[OptiKern] No font open.")
         return
 
     master = font.selectedFontMaster
-    if not master:
-        print("No master selected.")
-        return
-
     glyphs = get_kernable_glyphs(font)
-    print(f"[OptiKern] Kernable glyphs: {len(glyphs)}")
 
-    # Calibration (M-method baseline)
-    calib = calibrate_reference_metrics(font, master)
+    print(f"[OptiKern] Glyphs: {len(glyphs)}")
 
-    # Feature extraction
+    calibrate_reference_metrics(font, master)
+
     edge = build_edge_features(font, glyphs, master)
-    raster = build_raster_profiles(font, glyphs, master, columns=32, samples_per_band=12)
+    raster = build_raster_profiles(font, glyphs, master)
 
-    # Build classes
     cfg = ClassifyConfig(use_raster=True)
-    L, R, glyph_to_L, glyph_to_R = build_classes(edge, raster, cfg=cfg)
+    L, R, _, _ = build_classes(edge, raster, cfg)
 
-    # Export to Glyphs (safe prefix)
-    export_cfg = ExportConfig(prefix="OK_", overwrite=True, clear_missing=False)
-    write_classes_to_glyphs(font, L, R, cfg=export_cfg)
+    export_cfg = ExportConfig(prefix="OK_", overwrite=True)
+    write_classes_to_glyphs(font, L, R, export_cfg)
 
-    print("[OptiKern] Done. Check Glyphs > Font Info > Classes for OK_* classes.")
+    print("[OptiKern] DONE")
+
 
 run()
