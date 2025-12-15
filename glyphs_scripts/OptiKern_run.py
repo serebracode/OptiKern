@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
-# OptiKern entry point for Glyphs
+
+import os
+import sys
+
+# Ensure script directory is on sys.path (Glyphs-safe)
+SCRIPT_DIR = os.path.dirname(__file__)
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+
 
 from optikern.glyphs_integration import get_current_font
 from optikern.glyph_filter import get_kernable_glyphs
