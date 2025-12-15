@@ -1,6 +1,5 @@
 def get_kernable_glyphs(font):
-    glyphs = []
-    for g in font.glyphs:
-        if g.export and not g.category in ["Mark", "Separator"]:
-            glyphs.append(g)
-    return glyphs
+    return [
+        g for g in font.glyphs
+        if g.export and g.layers and not g.name.startswith("_")
+    ]
